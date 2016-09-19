@@ -1,0 +1,209 @@
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>Social Collaboration Hub</title>
+	<link rel="stylesheet" type="text/css" href="schub-nav.css">
+	<link rel="stylesheet" href="font-awesome/css/font-awesome.min.css">
+</head>
+<body>
+	<div class="schub-nav nav-wrapper">
+		<div class="logo-box">
+			<img src="images/logo-small.png" alt="" />
+		</div>
+		<div class="navbar-box">
+			<div class="navbar-main">
+				<ul id="the-nav-list" class="nav-list">
+					<li class="active"><a href="#" onclick="changeUrl('liferay', this); return false;">Portal</a></li>
+					<li><a href="#" onclick="changeUrl('nuxeo', this); return false;">Dokumente</a></li>
+					<li><a href="#" onclick="changeUrl('appsuite', this); return false;">E-Mails</a></li>
+					<li><a href="#" onclick="changeUrl('camunda', this); return false;">Prozesse</a></li>
+					<li><a href="#" onclick="changeUrl('search', this); return false;">Suche</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div id="content-box">
+		<div class="left-nav">
+			<div class="icon-label" title="Prozess-Management">
+				<span class="fa fa-sitemap" style="transform: rotate(-90deg);"></span>
+			</div>
+			<ul id="the-sidebar-list" class="icon-list">
+				<li class="active"><a href="#" title="Cockpit Prozesse" onclick="changeUrl('camunda-cockpit', this); return false;"><i class="fa fa-dashboard"></i></a></li>
+				<li><a href="#" title="Tasklist Prozesse" onclick="changeUrl('camunda-tasklist', this); return false;"><i class="fa fa-tasks"></i></a></li>
+				<li><a href="#" title="Editor Prozesse (BPMN)" onclick="changeUrl('bpmn-editor', this); return false;"><i class="fa fa-pencil-square-o"></i></a></li>
+
+				<li class="divider icon-label" title="Fall-Management">
+					<span class="fa fa-clone"></span>
+				</li>
+				<li><a href="#" title="Cockpit Fälle" onclick="changeUrl('camunda-cmmn-cockpit', this); return false;"><i class="fa fa-dashboard"></i></a></li>
+				<li><a href="#" title="Tasklist Fälle" onclick="changeUrl('camunda-cmmn-tasklist', this); return false;"><i class="fa fa-tasks"></i></a></li>
+				<li><a href="#" title="Editor Fälle (CMMN)" onclick="changeUrl('cmmn-editor', this); return false;"><i class="fa fa-pencil-square"></i></a></li>
+			</ul>
+		</div>
+		<iframe id="the-frame" src="https://your.schub.address.de" onload="changeNav(this.contentWindow.location.href, this);" onclick="console.log('onclick');"></iframe>
+	</div>
+
+	<script>
+		var LOC = 'https://your.schub.address.de';
+		var STORE_CUR_URL = 'iisys_nav_current-url';
+
+	    function changeUrl(target, element){
+	        var loc = LOC,
+	        	showSidebar = false;
+
+	        switch(target) {
+	        case 'liferay':
+	        	break;
+	        case 'nuxeo':
+	        	loc += '/nuxeo/';
+	        	break;
+	        case 'appsuite':
+	        	loc += '/appsuite/';
+	        	break;
+	        case 'camunda':
+	        	loc += '/camunda/app/cockpit/default/#/dashboard';
+	        	defaultLeftNav();
+	        	showSidebar = true;
+	        	break;
+	        case 'search':
+	        	loc += '/web/guest/suche';
+	        	break;
+	        // sidebar (camunda):
+			case 'camunda-cockpit':
+	        	loc += '/camunda/app/cockpit/default/#/dashboard';
+				showSidebar = true;	        	
+	        	break;
+        	case 'camunda-tasklist':
+	        	loc += '/camunda/app/tasklist/default/';
+	        	showSidebar = true;
+	        	break;
+	        case 'bpmn-editor':
+	        	loc += '/bpmnjs/';
+	        	showSidebar = true;
+	        	break;
+	        case 'camunda-cmmn-cockpit':
+	        	loc += '/cmmn-ui/';
+	        	showSidebar = true;
+	        	break;
+	        case 'camunda-cmmn-tasklist':
+	        	loc += '/cmmn-ui/#/tasklist/';
+	        	showSidebar = true;
+	        	break;
+	        case 'cmmn-editor':
+	        	loc += '/cmmnjs/';
+	        	showSidebar = true;
+	        	break;	        
+	        }
+
+	        document.getElementById('the-frame').setAttribute('src', loc);
+	        changeActiveTab(element, showSidebar);
+	        saveUrlToStorage(loc);     
+	    }
+
+	    function showLeftNav(show) {
+	    	var contentBox = document.getElementById('content-box'),
+	    		contentBoxClass = '';
+	    	
+	    	if(show) {
+	    		contentBoxClass = 'left-nav-open';
+	    	}
+
+//	    	console.log('className: '+ contentBox.className);
+
+	    	if(contentBox.className !== contentBoxClass)
+	    		contentBox.className = contentBoxClass;
+	    }
+
+	    function defaultLeftNav() {
+	    	var listNodes = document.getElementById('content-box')
+	    		.getElementsByClassName('left-nav')[0]
+	    		.getElementsByClassName('icon-list')[0]
+	    		.children;
+
+	    	listNodes[0].className = 'active';
+
+	    	for(var i=1, j=listNodes.length; i < j; i++) {
+	    		if(listNodes[i].className.indexOf('divider') > -1) 
+	    			continue;
+	        	listNodes[i].className = '';
+	        }	        
+	    }
+
+	    function changeNav(url, frame) {
+	    	console.log('changeNav('+url+')');
+	    	frame.contentWindow.onunload = unloadMyFrame;
+
+	    	if(url && url!==null) {
+	    		saveUrlToStorage(url);
+	    		var navList = document.getElementById('the-nav-list');
+
+	    		if(url.startsWith(LOC + '/appsuite'))
+	    			changeActiveTab( navList.children[2].children[0] );
+	    		else if(url.startsWith(LOC + '/nuxeo'))
+	    			changeActiveTab( navList.children[1].children[0] );
+	    		else if(url.startsWith(LOC + '/camunda') || url.startsWith(LOC + '/bpmnjs') || url.startsWith(LOC + '/cmmnjs') || url.startsWith(LOC + '/cmmn-ui')) {
+	    			changeActiveTab( navList.children[3].children[0], true );
+	    			var sideBarList = document.getElementById('the-sidebar-list');
+	    			if(url.startsWith(LOC + '/camunda/app/cockpit'))
+	    				changeActiveTab( sideBarList.children[0].children[0], true );
+	    			else if(url.startsWith(LOC + '/camunda/app/tasklist'))
+	    				changeActiveTab( sideBarList.children[1].children[0], true );
+	    			else if(url.startsWith(LOC + '/bpmnjs'))
+	    				changeActiveTab( sideBarList.children[2].children[0], true );
+	    			else if(url.startsWith(LOC + '/cmmn-ui/#/tasklist/'))
+	    				changeActiveTab( sideBarList.children[5].children[0], true );
+	    			else if(url.startsWith(LOC + '/cmmn-ui'))
+	    				changeActiveTab( sideBarList.children[4].children[0], true );
+	    			else if(url.startsWith(LOC + '/cmmnjs'))
+	    				changeActiveTab( sideBarList.children[6].children[0], true );
+	    		}
+	    		else if(url.startsWith(LOC + '/web/guest/suche'))
+	    			changeActiveTab( navList.children[4].children[0] );
+	    		else
+	    			changeActiveTab( navList.children[0].children[0] );
+	    	}
+	    }
+
+	    function unloadMyFrame() {
+	    	console.log('unloadMyFrame');
+	    }
+
+	    function changeActiveTab(linkElement, showSidebar) {
+	    	if(!showSidebar)
+	        	showLeftNav(showSidebar);
+
+	    	var listNodes = linkElement.parentNode.parentNode.children;
+	        for(var i=0, j=listNodes.length; i < j; i++) {
+	        	if(listNodes[i].className.indexOf('divider') > -1)
+	        		continue;
+	        	listNodes[i].className = '';
+	        }
+	        linkElement.parentNode.className = 'active';
+
+	        if(showSidebar)
+	        	setTimeout( showLeftNav, 1500, showSidebar );
+	    }
+
+	    function saveCurrentFrameUrl() {
+	    	var frameUrl = document.getElementById('the-frame').contentWindow.location.href;
+	    	saveUrlToStorage(frameUrl);
+	    }
+	    function saveUrlToStorage(url) {
+	    	console.log('saveUrlToStorage: '+url);
+	    	if(url!==null)
+	    		sessionStorage.setItem(STORE_CUR_URL, url);
+	    }
+
+	    function setLastFrameUrl() {
+	    	var lastUrl = sessionStorage.getItem(STORE_CUR_URL);
+	    	if(lastUrl) {
+	    		document.getElementById('the-frame').setAttribute('src', lastUrl);
+	    		changeNav(lastUrl);
+	    	}
+	    }
+
+	    setLastFrameUrl();
+
+	</script>
+</body>
